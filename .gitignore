@@ -1,0 +1,11 @@
+/data
+/src/.idea/workspace.xml
+/models/m1-cnn-pristine/checkpoint
+/models/m1-cnn-pristine/m1-cnn-pristine.ckpt.data-00000-of-00001
+/models/m1-cnn-pristine/m1-cnn-pristine.ckpt.index
+/models/m1-cnn-pristine/m1-cnn-pristine.ckpt.meta
+/models/m1-cnn-pristine/m1-cnn-pristine.npz
+/models/m1-cnn-pristine/model.ckpt.data-00000-of-00001
+/models/m1-cnn-pristine/model.ckpt.index
+/models/m1-cnn-pristine/model.ckpt.meta
+/src/data/__pycache__/*.pyc
