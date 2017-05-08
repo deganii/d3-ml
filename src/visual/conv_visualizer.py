@@ -14,4 +14,13 @@ class ConvVisualizer(object):
             plt.imshow(units[0,:,:,i], interpolation="nearest", cmap="gray")
         plt.show()
 
+    @classmethod
+    def saveTiledFilters(cls, units, destination, n_columns=4):
+        filters = units.shape[3]
+        n_rows = math.ceil(filters / n_columns) + 1
+        for i in range(filters):
+
+            plt.subplot(n_rows, n_columns, i + 1)
+
+
 
