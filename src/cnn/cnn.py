@@ -10,6 +10,10 @@ import numpy as np
 
 # Parameters
 from data.brightfield import BrightfieldGenerator
+#mode = 'train'
+from visual import ConvVisualizer
+
+mode = 'visualize_conv'
 
 learning_rate = 0.001
 training_iters = 200000
@@ -88,7 +92,7 @@ def conv_net(x, weights, biases, dropout):
 
     # Output, class prediction
     out = tf.add(tf.matmul(fc1, weights['out']), biases['out'])
-    return out
+    return out, conv1, conv2
 
 # Store layers weight & bias
 weights = {
@@ -110,7 +114,7 @@ biases = {
 }
 
 # Construct model
-pred = conv_net(x, weights, biases, keep_prob)
+pred, cv1, cv2 = conv_net(x, weights, biases, keep_prob)
 
 # Define loss and optimizer
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
@@ -138,56 +142,65 @@ with tf.Session() as sess:
     test_acc_dt = []
     time_dt = []
 
-    start_time = time.time()
+    saver.restore(sess, model_folder + "model.ckpt")
 
-    # Keep training until reach max iterations
-    while step * batch_size < training_iters:
-        batch_range = range(step * batch_size % 10000, (step+1) * batch_size % 10000)
-        batch_x, batch_y = train_data[batch_range, :], train_labels[batch_range]
+    if mode == 'visualize_conv':
+        cv_res1, cv_res2 = sess.run([cv1, cv2],
+            feed_dict={x: train_data[0:128, :],
+                       y: train_labels[0:128], keep_prob: dropout})
+        ConvVisualizer.plot_filter(cv_res1)
+        ConvVisualizer.plot_filter(cv_res2)
+    elif mode == 'train':
+        start_time = time.time()
 
-        # Run optimization op (backprop)
-        sess.run(optimizer, feed_dict={x: batch_x, y: batch_y,
-                                       keep_prob: dropout})
-        if step % display_step == 0:
-            # Calculate batch loss and accuracy
-            train_loss, train_acc = sess.run([cost, accuracy], feed_dict={x: batch_x,
-                                                                          y: batch_y,
-                                                                          keep_prob: 1.})
-            test_acc = sess.run(accuracy, feed_dict={x: test_data[:256],
-                                          y: test_labels[:256],
-                                          keep_prob: 1.})
+        # Keep training until reach max iterations
+        while step * batch_size < training_iters:
+            batch_range = range(step * batch_size % 10000, (step+1) * batch_size % 10000)
+            batch_x, batch_y = train_data[batch_range, :], train_labels[batch_range]
 
-            print("Iter " + str(step*batch_size) + ", Minibatch Loss= " + \
-                  "{:.6f}".format(train_loss) + ", Training Accuracy= " + \
-                  "{:.5f}".format(train_acc) + ", Test Accuracy= " + \
-                  "{:.5f}".format(test_acc))
+            # Run optimization op (backprop)
+            sess.run(optimizer, feed_dict={x: batch_x, y: batch_y,
+                                           keep_prob: dropout})
+            if step % display_step == 0:
+                # Calculate batch loss and accuracy
+                train_loss, train_acc = sess.run([cost, accuracy], feed_dict={x: batch_x,
+                                                                              y: batch_y,
+                                                                              keep_prob: 1.})
+                test_acc = sess.run(accuracy, feed_dict={x: test_data[:256],
+                                              y: test_labels[:256],
+                                              keep_prob: 1.})
 
-            step_dt.append(step)
-            iter_dt.append(step*batch_size)
-            train_loss_dt.append(train_loss)
-            train_acc_dt.append(train_acc)
-            test_acc_dt.append(test_acc)
-            time_dt.append(time.time() - start_time)
+                print("Iter " + str(step*batch_size) + ", Minibatch Loss= " + \
+                      "{:.6f}".format(train_loss) + ", Training Accuracy= " + \
+                      "{:.5f}".format(train_acc) + ", Test Accuracy= " + \
+                      "{:.5f}".format(test_acc))
 
-            header = "step_dt, iter_dt, train_loss_dt, train_acc_dt, test_acc_dt, time_dt"
-            perf_data = np.asarray([step_dt, iter_dt, train_loss_dt, train_acc_dt, test_acc_dt, time_dt])
+                step_dt.append(step)
+                iter_dt.append(step*batch_size)
+                train_loss_dt.append(train_loss)
+                train_acc_dt.append(train_acc)
+                test_acc_dt.append(test_acc)
+                time_dt.append(time.time() - start_time)
 
-            np.savetxt(model_folder + "performance.csv", np.transpose(perf_data), fmt='%10.4f', header = header, delimiter=',')
-            np.savez(model_folder + "performance.npz",step_dt=step_dt, iter_dt=iter_dt,
-                     train_loss_dt=train_loss_dt, train_acc_dt=train_acc_dt, test_acc_dt=test_acc_dt, time_dt=time_dt)
+                header = "step_dt, iter_dt, train_loss_dt, train_acc_dt, test_acc_dt, time_dt"
+                perf_data = np.asarray([step_dt, iter_dt, train_loss_dt, train_acc_dt, test_acc_dt, time_dt])
 
-        if step % save_step == 0:
-            saver.save(sess, model_folder + "model.ckpt")
+                np.savetxt(model_folder + "performance.csv", np.transpose(perf_data), fmt='%10.4f', header = header, delimiter=',')
+                np.savez(model_folder + "performance.npz",step_dt=step_dt, iter_dt=iter_dt,
+                         train_loss_dt=train_loss_dt, train_acc_dt=train_acc_dt, test_acc_dt=test_acc_dt, time_dt=time_dt)
 
-        step += 1
+            if step % save_step == 0:
+                saver.save(sess, model_folder + "model.ckpt")
 
-    # save the model
-    save_path = saver.save(sess, model_folder + "model.ckpt")
+            step += 1
 
-    print("Optimization Finished!")
+        # save the model
+        save_path = saver.save(sess, model_folder + "model.ckpt")
 
-    # Calculate accuracy for 256 mnist test images
-    print("Testing Accuracy:", \
-        sess.run(accuracy, feed_dict={x: test_data,
-                                      y: test_labels,
-                                      keep_prob: 1.}))
+        print("Optimization Finished!")
+
+        # Calculate accuracy for 256 mnist test images
+        print("Testing Accuracy:", \
+            sess.run(accuracy, feed_dict={x: test_data,
+                                          y: test_labels,
+                                          keep_prob: 1.}))
