@@ -13,8 +13,9 @@ from data.brightfield import BrightfieldGenerator
 from visual import ConvVisualizer
 
 
-mode = 'train'
+# mode = 'train'
 # mode = 'visualize_conv'
+mode= 'debug'
 
 learning_rate = 0.001
 training_iters = 200000
@@ -24,7 +25,7 @@ display_step = 10
 save_step = 50
 
 
-model_folder = '../../models/m-12-cnn-sanity/'
+model_folder = '../../models/m1-cnn-pristine/'
 # initial_model_folder = model_folder
 initial_model_folder = '../../models/m1-cnn-pristine/'
 restore_model = False
@@ -101,7 +102,14 @@ def conv_net(x, weights, biases, dropout):
 
     # Output, class prediction
     out = tf.add(tf.matmul(fc1, weights['out']), biases['out'])
-    return out, conv1, conv2
+    return out, conv1, conv2, fc1
+
+def save_filters(destination, filters):
+    with open(destination, 'ab') as f:
+        for filter in range(filters.shape[3]):
+            print(f,"Filter {0}: \n".format(filter))
+            np.savetxt(f, filters[0,:,:,filter], fmt='%10.4f')
+
 
 # Store layers weight & bias
 weights = {
@@ -124,7 +132,7 @@ biases = {
 }
 
 # Construct model
-pred, cv1, cv2 = conv_net(x, weights, biases, keep_prob)
+pred, cv1, cv2, fc_out = conv_net(x, weights, biases, keep_prob)
 
 # Define loss and optimizer
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
@@ -161,6 +169,36 @@ with tf.Session() as sess:
                        y: train_labels[0:128], keep_prob: dropout})
         ConvVisualizer.plot_filter(cv_res1)
         ConvVisualizer.plot_filter(cv_res2)
+    elif mode == 'debug':
+        pred_res, cv_res1, cv_res2, fc_res = sess.run([pred, cv1, cv2, fc_out],
+                                    feed_dict={x: train_data[0:128, :],
+                                               y: train_labels[0:128], keep_prob: dropout})
+        # write fc to csv
+        debug_folder = model_folder +'debug/'
+        if not os.path.exists(debug_folder):
+            os.makedirs(debug_folder)
+        # delete all previous debug
+        import glob
+        for f in  glob.glob(debug_folder + "*.txt"):
+            os.remove(f)
+
+        for key,w in weights.items():
+            if not key.startswith('wc'):
+                wval = sess.run(w,feed_dict={x: train_data[0:128, :],
+                                    y: train_labels[0:128], keep_prob: dropout})
+                np.savetxt(debug_folder + 'debug_weight_{0}.txt'.format(key), wval, fmt='%10.4f')
+
+        for key, b in biases.items():
+            bval = sess.run(b, feed_dict={x: train_data[0:128, :],
+                                          y: train_labels[0:128], keep_prob: dropout})
+            np.savetxt(debug_folder + 'debug_bias_{0}.txt'.format(key), bval, fmt='%10.4f')
+
+        np.savetxt(debug_folder + 'debug_pred.txt', pred_res, fmt='%10.4f')
+        np.savetxt(debug_folder + 'debug_fc.txt', fc_res,  fmt='%10.4f')
+        save_filters(debug_folder + 'debug_conv1.txt', cv_res1)
+        save_filters(debug_folder + 'debug_conv2.txt', cv_res2)
+
+
     elif mode == 'train':
         start_time = time.time()
 

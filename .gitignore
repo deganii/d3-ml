@@ -10,3 +10,8 @@
 /models/m1-cnn-pristine/model.ckpt.meta
 /src/data/__pycache__/*.pyc
 /src/visual/__pycache__/*.pyc
+checkpoint
+*.data-00000-of-00001
+*.index
+*.meta
+debug
