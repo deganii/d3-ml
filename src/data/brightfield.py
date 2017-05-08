@@ -14,7 +14,7 @@ import glob
 class BrightfieldGenerator(object):
 
     @classmethod
-    def generateImage(cls, destination, seq):
+    def generateImage(cls, destination, seq, save = True):
         # create at double the size, then downsample
         image = Image.new('L', (40, 40))
         draw = ImageDraw.Draw(image)
@@ -84,8 +84,11 @@ class BrightfieldGenerator(object):
         #     Image.BILINEAR
         # )
         image = PIL.ImageOps.invert(image)
-
-        image.save(os.path.join(destination, '{0:05}-{1}.png'.format(seq, num_beads )))
+        if save:
+            if not os.path.exists(destination):
+                os.makedirs(destination)
+            image.save(os.path.join(destination, '{0:05}-{1}.png'.format(seq, num_beads )))
+        return image, num_beads
 
     @classmethod
     def makenpz(cls, path, dest_name):
@@ -111,7 +114,6 @@ class BrightfieldGenerator(object):
             labels[seq_num, :] = np.zeros(6, dtype='float32')
             labels[seq_num, label] = 1.0
         return (data, labels)
-
 
 def angle_dist(a1, a2):
     a = a2 - a1

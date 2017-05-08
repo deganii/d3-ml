@@ -5,7 +5,7 @@ class ConvVisualizer(object):
     @classmethod
     def plot_filter(cls, units):
         filters = units.shape[3]
-        plt.figure(1, figsize=(40,40))
+        plt.figure()
         n_columns = 3
         n_rows = math.ceil(filters / n_columns) + 1
         for i in range(filters):

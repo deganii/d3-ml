@@ -3,17 +3,18 @@ from __future__ import print_function
 import tensorflow as tf
 import time
 import numpy as np
-
+import os
 # Import MNIST data
 #from tensorflow.examples.tutorials.mnist import input_data
 #mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
 
 # Parameters
 from data.brightfield import BrightfieldGenerator
-#mode = 'train'
 from visual import ConvVisualizer
 
-mode = 'visualize_conv'
+
+mode = 'train'
+# mode = 'visualize_conv'
 
 learning_rate = 0.001
 training_iters = 200000
@@ -22,7 +23,14 @@ batch_size = 128
 display_step = 10
 save_step = 50
 
-model_folder = '../../models/m1-cnn-pristine/'
+
+model_folder = '../../models/m7-cnn-pristine-23-epochs/'
+# initial_model_folder = model_folder
+initial_model_folder = '../../models/m6-cnn-pristine-20-epochs/'
+
+if not os.path.exists(model_folder):
+    os.makedirs(model_folder)
+
 data_folder = '../../data/ds1-pristine/'
 
 data_load_start = time.time()
@@ -37,9 +45,6 @@ test_data, test_labels = test_npz['data'], test_npz['labels']
 
 
 print('Loading data in: ', (time.time() - data_load_start))
-
-
-
 
 image_dim = train_data.shape[1]
 
@@ -142,7 +147,7 @@ with tf.Session() as sess:
     test_acc_dt = []
     time_dt = []
 
-    saver.restore(sess, model_folder + "model.ckpt")
+    saver.restore(sess, initial_model_folder + "model.ckpt")
 
     if mode == 'visualize_conv':
         cv_res1, cv_res2 = sess.run([cv1, cv2],

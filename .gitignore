@@ -9,3 +9,4 @@
 /models/m1-cnn-pristine/model.ckpt.index
 /models/m1-cnn-pristine/model.ckpt.meta
 /src/data/__pycache__/*.pyc
+/src/visual/__pycache__/*.pyc
