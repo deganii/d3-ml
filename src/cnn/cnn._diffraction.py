@@ -26,10 +26,10 @@ display_step = 10
 save_step = 50
 
 
-model_folder = '../../models/m-17-cnn-diffraction-10-conv3-adam-clip/'
+model_folder = '../../models/m-18-cnn-diffraction-clip-fresh/'
 # initial_model_folder = model_folder
 initial_model_folder = '../../models/m-14-cnn-diffraction-10-conv3/'
-restore_model = True
+restore_model = False
 
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
