@@ -1,2 +1,2 @@
-from visual.conv_visualizer import ConvVisualizer
+from visual.comp_visualizer import ComponentVisualizer
 

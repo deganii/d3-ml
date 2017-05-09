@@ -10,14 +10,14 @@ import os
 
 # Parameters
 from data.brightfield import BrightfieldGenerator
-from visual import ConvVisualizer
+from visual import ComponentVisualizer
 
 
 # mode = 'train'
 # mode = 'visualize_conv'
 mode = 'debug'
 
-learning_rate = 0.0008
+learning_rate = 0.01
 training_iters = 2000000
 #training_iters = 10000
 batch_size = 128
@@ -25,9 +25,9 @@ display_step = 10
 save_step = 50
 
 
-model_folder = '../../models/m-15-cnn-diffraction-10-conv3-contd/'
+model_folder = '../../models/m-16-cnn-diffraction-10-conv3-rms/'
 # initial_model_folder = model_folder
-initial_model_folder = '../../models/m-15-cnn-diffraction-10-conv3-contd/'
+initial_model_folder = '../../models/m-16-cnn-diffraction-10-conv3-rms/'
 restore_model = True
 
 if not os.path.exists(model_folder):
@@ -145,6 +145,8 @@ pred, cv1, cv2, cv3, fc_out = conv_net(x, weights, biases, keep_prob)
 # Define loss and optimizer
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+# optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
+
 
 # Evaluate model
 correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
@@ -175,8 +177,9 @@ with tf.Session() as sess:
         cv_res1, cv_res2 = sess.run([cv1, cv2],
             feed_dict={x: train_data[0:128, :],
                        y: train_labels[0:128], keep_prob: dropout})
-        ConvVisualizer.plot_filter(cv_res1)
-        ConvVisualizer.plot_filter(cv_res2)
+        ComponentVisualizer.plot_filter(cv_res1)
+        ComponentVisualizer.plot_filter(cv_res2)
+
     elif mode == 'debug':
 
         pred_res, cv_res1, cv_res2, cv_res3, fc_res = sess.run([pred, cv1, cv2, cv3, fc_out],
