@@ -14,8 +14,9 @@ from visual import ComponentVisualizer
 
 
 mode = 'train'
-# mode = 'visualize_conv'
+# mode = 'visualize'
 # mode = 'debug'
+mode = 'stats'
 
 learning_rate = 0.001
 training_iters = 2000000
@@ -33,7 +34,6 @@ restore_model = True
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
 
-# data_folder = '../../data/ds1-pristine/'
 data_folder = '../../data/ds2-diffraction/'
 
 data_load_start = time.time()
@@ -50,12 +50,10 @@ test_data, test_labels = test_npz['data'], test_npz['labels']
 print('Loading data in: ', (time.time() - data_load_start))
 
 # diffaction images are 80, non-diffracted 40
-# image_w, image_h  = 40, 40
 image_w, image_h  = 80, 80
 
 # Network Parameters
-# n_input = 40*40 # MNIST data input (img shape: 28*28)
-n_input = 80*80
+n_input = 80*80 # MNIST data input (img shape: 28*28)
 n_classes = 6 # MNIST total classes (0-9 digits)
 dropout = 0.75 # Dropout, probability to keep units
 
@@ -84,18 +82,18 @@ def conv_net(x, weights, biases, dropout):
     x = tf.reshape(x, shape=[-1, image_w, image_h, 1])
 
     # Convolution Layer
-    conv1 = conv2d(x, weights['wc1'], biases['bc1'])
+    conv1u = conv2d(x, weights['wc1'], biases['bc1'])
     # Max Pooling (down-sampling)
-    conv1 = maxpool2d(conv1, k=2)
+    conv1 = maxpool2d(conv1u, k=2)
 
     # Convolution Layer
-    conv2 = conv2d(conv1, weights['wc2'], biases['bc2'])
+    conv2u = conv2d(conv1, weights['wc2'], biases['bc2'])
     # Max Pooling (down-sampling)
-    conv2 = maxpool2d(conv2, k=2)
+    conv2 = maxpool2d(conv2u, k=2)
 
-    conv3 = conv2d(conv2, weights['wc3'], biases['bc3'])
+    conv3u = conv2d(conv2, weights['wc3'], biases['bc3'])
     # Max Pooling (down-sampling)
-    conv3 = maxpool2d(conv3, k=2)
+    conv3 = maxpool2d(conv3u, k=2)
 
     # Fully connected layer
     # Reshape conv2 output to fit fully connected layer input
@@ -107,7 +105,7 @@ def conv_net(x, weights, biases, dropout):
 
     # Output, class prediction
     out = tf.add(tf.matmul(fc1, weights['out']), biases['out'])
-    return out, conv1, conv2, conv3, fc1
+    return out, conv1u, conv2u, conv3, fc1
 
 def save_filters(destination, filters):
     with open(destination, 'ab') as f:
@@ -115,6 +113,18 @@ def save_filters(destination, filters):
             print(f,"Filter {0}: \n".format(filter))
             np.savetxt(f, filters[0,:,:,filter], fmt='%10.4f')
 
+
+def get_model_folder(folder_name):
+    folder = model_folder + folder_name + '/'
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    return folder
+
+
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
 
 # Store layers weight & bias
 weights = {
@@ -176,15 +186,54 @@ with tf.Session() as sess:
     if restore_model:
         saver.restore(sess, initial_model_folder + "model.ckpt")
 
-    if mode == 'visualize_conv':
-        cv_res1, cv_res2 = sess.run([cv1, cv2],
+    if mode == 'visualize':
+        cv_res1, cv_res2, cv_res3, wc1_res, wc2_res, wc3_res = sess.run([cv1, cv2, cv3, weights['wc1'], weights['wc2'], weights['wc3']],
             feed_dict={x: train_data[0:128, :],
                        y: train_labels[0:128], keep_prob: dropout})
-        ComponentVisualizer.plot_filter(cv_res1)
-        ComponentVisualizer.plot_filter(cv_res2)
+        #ComponentVisualizer.plot_filter(cv_res1)
+        #ComponentVisualizer.plot_filter(cv_res2)
+
+
+
+        viz_folder = get_model_folder('visualizations')
+
+        ComponentVisualizer.saveTiledFilterOutputs(cv_res1, viz_folder + 'cv1_out.png')
+        ComponentVisualizer.saveTiledFilterOutputs(cv_res2, viz_folder + 'cv2_out.png')
+        ComponentVisualizer.saveTiledFilterOutputs(cv_res3, viz_folder + 'cv3_out.png')
+
+        ComponentVisualizer.saveTiledFilters(wc1_res, viz_folder + 'wc1_res.png' )
+        ComponentVisualizer.saveTiledFilters(wc2_res, viz_folder + 'wc2_res.png' )
+        ComponentVisualizer.saveTiledFilters(wc3_res, viz_folder + 'wc3_res.png' )
+    elif mode == 'stats':
+        stats_folder = get_model_folder('stats')
+
+        test_acc_stat, preds_out = sess.run([accuracy, pred], feed_dict={x: test_data,
+                                          y: test_labels,
+                                          keep_prob: 1.})
+        # Calculate accuracy for all test images
+        print("Testing Accuracy:", test_acc_stat )
+        with open(stats_folder + 'accuracy.txt', "w") as text_file:
+            text_file.write("Test Accuracy: {0}".format(test_acc_stat) )
+
+        # softmax all the predictions
+        for i in range(test_data.shape[0]):
+            preds_out[i,:] = softmax(preds_out[i,:])
+
+        # make ROC curve
+
+        # pred should be 10000 x 6 matrix
+        # tp_preds = []
+        # n_preds = []
+        # for threshold in np.arange(0,1,0.01):
+        #     neg_pred = preds_out[:,0] >= threshold
+        #     pos_pred = preds_out[:, 0] < threshold
+        #     neg_gnd = test_data[:,0] == 1
+        #     pos_gnd = test_data[:, 0] == 0
+        #     true_pos = pos_gnd == pos_pred
+        #     false_pos = pos_pred == neg_gnd
+
 
     elif mode == 'debug':
-
         pred_res, cv_res1, cv_res2, cv_res3, fc_res = sess.run([pred, cv1, cv2, cv3, fc_out],
                                     feed_dict={x: train_data[0:128, :],
                                                y: train_labels[0:128], keep_prob: dropout})
@@ -264,7 +313,7 @@ with tf.Session() as sess:
 
         print("Optimization Finished!")
 
-        # Calculate accuracy for 256 mnist test images
+        # Calculate accuracy for all test images
         print("Testing Accuracy:", \
             sess.run(accuracy, feed_dict={x: test_data,
                                           y: test_labels,

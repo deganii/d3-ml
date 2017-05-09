@@ -35,7 +35,6 @@ if not os.path.exists(model_folder):
     os.makedirs(model_folder)
 
 data_folder = '../../data/ds1-pristine/'
-# data_folder = '../../data/ds2-diffraction/'
 
 data_load_start = time.time()
 #train_data, train_labels = BrightfieldGenerator.loadData(data_folder + "training/*.png")
@@ -52,7 +51,6 @@ print('Loading data in: ', (time.time() - data_load_start))
 
 # diffaction images are 80, non-diffracted 40
 image_w, image_h  = 40, 40
-# image_w, image_h  = 80, 80
 
 # Network Parameters
 n_input = 40*40 # MNIST data input (img shape: 28*28)
