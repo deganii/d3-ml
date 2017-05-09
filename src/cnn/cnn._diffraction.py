@@ -13,11 +13,11 @@ from data.brightfield import BrightfieldGenerator
 from visual import ComponentVisualizer
 
 
-# mode = 'train'
+mode = 'train'
 # mode = 'visualize_conv'
-mode = 'debug'
+# mode = 'debug'
 
-learning_rate = 0.01
+learning_rate = 0.001
 training_iters = 2000000
 #training_iters = 10000
 batch_size = 128
@@ -25,9 +25,9 @@ display_step = 10
 save_step = 50
 
 
-model_folder = '../../models/m-16-cnn-diffraction-10-conv3-rms/'
+model_folder = '../../models/m-17-cnn-diffraction-10-conv3-adam-clip/'
 # initial_model_folder = model_folder
-initial_model_folder = '../../models/m-16-cnn-diffraction-10-conv3-rms/'
+initial_model_folder = '../../models/m-14-cnn-diffraction-10-conv3/'
 restore_model = True
 
 if not os.path.exists(model_folder):
@@ -144,9 +144,12 @@ pred, cv1, cv2, cv3, fc_out = conv_net(x, weights, biases, keep_prob)
 
 # Define loss and optimizer
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 # optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
 
+gradients, variables = zip(*optimizer.compute_gradients(cost))
+gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+optimize = optimizer.apply_gradients(zip(gradients, variables))
 
 # Evaluate model
 correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
@@ -212,7 +215,7 @@ with tf.Session() as sess:
         save_filters(debug_folder + 'debug_conv3.txt', cv_res3)
 
 
-    elif mode == 'train':
+    elif mode == 'train': # TODO: add params decriibing aspects of the network (learning rate, optimizer used, layers, etc)
         start_time = time.time()
 
         # Keep training until reach max iterations
@@ -221,7 +224,7 @@ with tf.Session() as sess:
             batch_x, batch_y = train_data[batch_range, :], train_labels[batch_range]
 
             # Run optimization op (backprop)
-            sess.run(optimizer, feed_dict={x: batch_x, y: batch_y,
+            sess.run(optimize, feed_dict={x: batch_x, y: batch_y,
                                            keep_prob: dropout})
             if step % display_step == 0:
                 # Calculate batch loss and accuracy
