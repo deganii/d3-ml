@@ -1,0 +1,3 @@
+iterations = 20
+epochs = 10
+quick pass on ensemble data

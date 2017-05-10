@@ -15,7 +15,7 @@ from data import BrightfieldGenerator
 class DiffractionGenerator(object):
 
     @classmethod
-    def generateImage(cls, destination, seq, bf_image, label, pad_width = 20, save = True, dx = 0.8,  dy = 0.8, z = 0.2, lmbda = 405):
+    def generateImage(cls, destination, seq, bf_image, label, pad_width = 20, save = True, dx = 0.8,  dy = 0.8, z = 0.2, lmbda = 405, destfilename = None):
         if type(bf_image) is not np.ndarray:
             U0 = np.array(bf_image)
         else:
@@ -46,8 +46,10 @@ class DiffractionGenerator(object):
         if save:
             if not os.path.exists(destination):
                 os.makedirs(destination)
+            if destfilename is None:
+                destfilename = 'D{0:05}-{1}.png'.format(seq, label)
             scipy.misc.imsave(os.path.join(
-                destination, 'D{0:05}-{1}.png'.format(seq, label )), U)
+                destination, destfilename), U)
         return U, label
 
     @classmethod
@@ -98,4 +100,4 @@ class DiffractionGenerator(object):
 
 
 #DiffractionGenerator.generateNewImagePair(".", 1)
-DiffractionGenerator.diffractDS1Dataset()
+#DiffractionGenerator.diffractDS1Dataset()

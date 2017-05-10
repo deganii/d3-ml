@@ -1,1 +1,2 @@
 from data.brightfield import BrightfieldGenerator
+from data.diffraction import DiffractionGenerator

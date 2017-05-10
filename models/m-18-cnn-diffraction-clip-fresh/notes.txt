@@ -1,0 +1,8 @@
+
+- Loaded fresh (no prior model)
+- Learning rate = 0.001 
+- Adam optimizer with gradient clipping (norm = 5)
+- dropout = 0.75
+- 3 conv layers, 10x10x32, 10x10x64, 10x10x128
+- 2 fc layer convx1024 => 1024x6
+- running on ful traniing set, not just 10,000

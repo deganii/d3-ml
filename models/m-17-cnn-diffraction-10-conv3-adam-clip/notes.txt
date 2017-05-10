@@ -1,0 +1,10 @@
+AdamOptimizer, learning rate = 0.001
+3 conv layers:
+
+This network was pre-loaded from:
+
+'../../models/m-14-cnn-diffraction-10-conv3/'
+(that is the network that had 70% accuracy and was about to suffer from fully connected layer going to zero)
+
+Gradients are clipped to 5 via the L2 norm
+
