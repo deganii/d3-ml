@@ -16,7 +16,7 @@ from visual import ComponentVisualizer
 mode = 'train'
 # mode = 'visualize'
 # mode = 'debug'
-mode = 'stats'
+# mode = 'stats'
 
 learning_rate = 0.001
 training_iters = 2000000
@@ -269,7 +269,7 @@ with tf.Session() as sess:
 
         # Keep training until reach max iterations
         while step * batch_size < training_iters:
-            batch_range = range(step * batch_size % 10000, (step+1) * batch_size % 10000)
+            batch_range = range((step * batch_size) % train_data.shape[0],((step+1) * batch_size) % train_data.shape[0])
             batch_x, batch_y = train_data[batch_range, :], train_labels[batch_range]
 
             # Run optimization op (backprop)
