@@ -17,3 +17,4 @@ checkpoint
 debug
 /models/m21-unet/unet_trained/events.out.tfevents.1494385004.ISMAIL-W520
 /models/m22-unet-diffraction-fast/unet_trained/events.out.tfevents.1494390073.ISMAIL-W520
+*.ISMAIL-W520
