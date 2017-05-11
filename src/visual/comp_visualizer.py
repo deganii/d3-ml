@@ -21,13 +21,31 @@ class ComponentVisualizer(object):
         plt.show()
 
     @classmethod
-    def saveTiledFilterOutputs(cls, units, destination, labels, n_columns=4, cropx=0, cropy = 0, ):
+    def saveTiledFilterOutputs(cls, units, destination, train_data, labels, n_columns=4, cropx=0, cropy = 0, ):
         filters = units.shape[3]
-        for i in range(5):
+        tiledImages = []
+        items_to_output = 5
+        for i in range(items_to_output):
             images = [scipy.misc.toimage(units[i,:,:,f].reshape([units.shape[1], units.shape[2]]), mode='L') for f in range(filters)]
-            for j in range()
+            src_image = scipy.misc.toimage(train_data[i, :].reshape(40,40))
+            if src_image.width > units.shape[1]:
+                src_image = src_image.resize((units.shape[1], units.shape[2]), resample=Image.BICUBIC)
+            for j in reversed(range(int(filters/n_columns))):
+                images.insert( j *  n_columns, src_image)
             label = np.where(labels[i] == 1)[0][0]
-            ComponentVisualizer.saveTiledImages(images, destination.format(i,label), n_columns=n_columns +1, cropx=cropx, cropy = cropy)
+            tiledImages.append(ComponentVisualizer.saveTiledImages(images, destination.format(i,label), n_columns=n_columns +1, cropx=cropx, cropy = cropy))
+        # now tile the tiles!
+        c_tileh = units.shape[2] - 2 * (cropy + 2)
+        imageCompoundTiledImage = Image.new('L', (tiledImages[0].width, (items_to_output-2)*c_tileh), color=255)
+        tiledImages.pop(3)
+        tiledImages.pop(2)
+        for idx, tiledImage in enumerate(tiledImages):
+            #cropped = tiledImage.crop([0,0,tiledImage.width, items_to_output*(c_tileh)])
+            imageCompoundTiledImage.paste(tiledImage, [0, idx * c_tileh ])
+        imageCompoundTiledImage.save(destination.format('C', 4))
+
+
+
 
     @classmethod
     def saveTiledFilters(cls, units, destination, n_columns=4, cropx=0, cropy = 0):
@@ -57,6 +75,8 @@ class ComponentVisualizer(object):
                 tile = files[row*n_columns+col]
                 image.paste(tile, (x0,y0))
         image.save(destination)
+        # send back the tiled img
+        return image
 
 #
 # diffPrefix = '../../data/ds2-diffraction/training/D'

@@ -195,8 +195,8 @@ with tf.Session() as sess:
         ComponentVisualizer.saveTiledFilterOutputs(cv_res1, viz_folder + 'cv1_out_{0}_L{1}.png', train_data[0:128], train_labels[0:128], cropx=cr, cropy=cr)
         ComponentVisualizer.saveTiledFilterOutputs(cv_res2, viz_folder + 'cv2_out_{0}_L{1}.png', train_data[0:128], train_labels[0:128], cropx=cr, cropy=cr)
 
-        ComponentVisualizer.saveTiledFilters(wc1_res, viz_folder + 'wc1_res.png' , train_labels[0:128])
-        ComponentVisualizer.saveTiledFilters(wc2_res, viz_folder + 'wc2_res.png', train_labels[0:128] )
+        ComponentVisualizer.saveTiledFilters(wc1_res, viz_folder + 'wc1_res.png')
+        ComponentVisualizer.saveTiledFilters(wc2_res, viz_folder + 'wc2_res.png' )
     elif mode == 'stats':
         stats_folder = get_model_folder('stats')
 

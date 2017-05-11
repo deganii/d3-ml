@@ -10,6 +10,7 @@ import ntpath
 # data_folder = '../../data/ds3-ensemble-square/'
 # data_folder = '../../data/ds4-ensemble-diffraction/'
 data_folder = '../../data/ds5-real-data/square/'
+mask_folder = '../../data/ds5-real-data/squaremask-small/'
 #train_npz = np.load(data_folder + 'training.npz')
 #test_npz = np.load(data_folder + 'test.npz')
 
@@ -35,16 +36,16 @@ class EnsembleDataProvider(BaseDataProvider):
         return data, label
 
 class RealDataProvider(BaseDataProvider):
-    channels = 3
-    n_class = 3
+    channels = 1
+    n_class = 2
     idx = 0
-    files = glob.glob(data_folder + "*.png" )
+    files = glob.glob(mask_folder + "*.png" )
     #im = scipy.misc.imread(input_folder+file)
 
     def __init__(self, **kwargs):
         super(RealDataProvider, self).__init__()
-        self.nx = 1365
-        self.ny = 1365
+        self.nx = 200
+        self.ny = 200
         self.kwargs = kwargs
 
     def _next_data(self):
@@ -53,8 +54,8 @@ class RealDataProvider(BaseDataProvider):
 
         basename =  ntpath.basename(datafile)
         labelname = basename[0:basename.find('.mat')] + '_composite.tif'
-        label = scipy.misc.imread(data_folder + labelname)
-
+        label = scipy.misc.imread(mask_folder + labelname)
+        label = label == 255
         self.idx = (self.idx + 1) % len(self.files)
         return data, label
 
@@ -64,7 +65,7 @@ class RealDataProvider(BaseDataProvider):
 
 
 #model_folder = '../../models/m23-unet-diffraction-full/'
-model_folder = '../../models/m-23-unet-real-data/'
+model_folder = '../../models/m-24-unet-real-data-augmented/'
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
 
