@@ -14,9 +14,9 @@ from visual import ComponentVisualizer
 
 
 # mode = 'train'
-# mode = 'visualize'
+mode = 'visualize'
 # mode= 'debug'
-mode = 'stats'
+# mode = 'stats'
 
 learning_rate = 0.001
 training_iters = 200000
@@ -191,11 +191,12 @@ with tf.Session() as sess:
 
         viz_folder = get_model_folder('visualizations')
 
-        ComponentVisualizer.saveTiledFilterOutputs(cv_res1, viz_folder + 'cv1_out.png')
-        ComponentVisualizer.saveTiledFilterOutputs(cv_res2, viz_folder + 'cv2_out.png')
+        cr = 3
+        ComponentVisualizer.saveTiledFilterOutputs(cv_res1, viz_folder + 'cv1_out_{0}_L{1}.png', train_data[0:128], train_labels[0:128], cropx=cr, cropy=cr)
+        ComponentVisualizer.saveTiledFilterOutputs(cv_res2, viz_folder + 'cv2_out_{0}_L{1}.png', train_data[0:128], train_labels[0:128], cropx=cr, cropy=cr)
 
-        ComponentVisualizer.saveTiledFilters(wc1_res, viz_folder + 'wc1_res.png' )
-        ComponentVisualizer.saveTiledFilters(wc2_res, viz_folder + 'wc2_res.png' )
+        ComponentVisualizer.saveTiledFilters(wc1_res, viz_folder + 'wc1_res.png' , train_labels[0:128])
+        ComponentVisualizer.saveTiledFilters(wc2_res, viz_folder + 'wc2_res.png', train_labels[0:128] )
     elif mode == 'stats':
         stats_folder = get_model_folder('stats')
 

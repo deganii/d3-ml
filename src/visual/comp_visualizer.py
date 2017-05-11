@@ -21,10 +21,13 @@ class ComponentVisualizer(object):
         plt.show()
 
     @classmethod
-    def saveTiledFilterOutputs(cls, units, destination, n_columns=4, cropx=0, cropy = 0):
+    def saveTiledFilterOutputs(cls, units, destination, labels, n_columns=4, cropx=0, cropy = 0, ):
         filters = units.shape[3]
-        images = [scipy.misc.toimage(units[0,:,:,f].reshape([units.shape[1], units.shape[2]]), mode='L') for f in range(filters)]
-        ComponentVisualizer.saveTiledImages(images, destination, n_columns=n_columns, cropx=cropx, cropy = cropy)
+        for i in range(5):
+            images = [scipy.misc.toimage(units[i,:,:,f].reshape([units.shape[1], units.shape[2]]), mode='L') for f in range(filters)]
+            for j in range()
+            label = np.where(labels[i] == 1)[0][0]
+            ComponentVisualizer.saveTiledImages(images, destination.format(i,label), n_columns=n_columns +1, cropx=cropx, cropy = cropy)
 
     @classmethod
     def saveTiledFilters(cls, units, destination, n_columns=4, cropx=0, cropy = 0):
