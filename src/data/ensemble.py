@@ -1,11 +1,14 @@
-from data import DiffractionGenerator
-from data import BrightfieldGenerator
-import PIL.ImageOps
-from PIL import Image, ImageDraw
-import random
-import numpy as np
 import os
+import random
+
+import PIL.ImageOps
+import numpy as np
 import scipy.misc
+from PIL import Image
+
+from data import BrightfieldGenerator
+from data import DiffractionGenerator
+
 
 class EnsembleGenerator(object):
     # build a 400x300 image with 25 cells, beads, and noise

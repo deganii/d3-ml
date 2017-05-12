@@ -78,7 +78,17 @@ class ComponentVisualizer(object):
         # send back the tiled img
         return image
 
-#
+    @classmethod
+    def saveTiledUnet(cls, n_columns=4, cropx=0, cropy = 0):
+        files = glob.glob('../../figures/predictions/*.*')
+
+        files = [Image.open(f).crop((320,0,320+160,160)) for f in files]
+        cls.saveTiledImages(files, '../../figures/unet-tiled.png', n_columns=n_columns)
+
+
+
+
+ComponentVisualizer.saveTiledUnet()
 # diffPrefix = '../../data/ds2-diffraction/training/D'
 # files = glob.glob('../../data/ds1-pristine/training/000*.png')[0:5]
 # dfiles = [diffPrefix + ntpath.basename(f) for f in files ]

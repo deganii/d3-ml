@@ -15,9 +15,9 @@ class ComponentVisualizer(object):
                 if name in merged.keys():
                     # scale the time and iterations by the last value
                     if name in ['step_dt', 'iter_dt', 'time_dt']:
-                        last_val = merged[name][-1]
-                        value = value + last_val
-                    merged[name] = np.concatenate((merged[name], value), axis=0)
+                        last_val = merged[name][-15]
+                        value = value + (last_val - merged[name][0])
+                    merged[name] = np.concatenate((merged[name][0:15], value), axis=0)
                 else:
                     merged[name] = value
         cls.plot_data_series(merged)
@@ -25,7 +25,7 @@ class ComponentVisualizer(object):
     @classmethod
     def plot_data_series(cls, merged):
         # plot and save to disk
-        iter_per_epoch = 60000
+        iter_per_epoch = 6000
         fig = plt.figure(figsize=(4,2))
         #title = "Learning Rate"
         fig.suptitle('', fontsize=10, fontweight='bold')
@@ -43,11 +43,15 @@ class ComponentVisualizer(object):
         fig.canvas.draw()
         plt.show()
 
+# ComponentVisualizer.merge_data_series([
+#     'm1-cnn-pristine',
+#     'm2-cnn-pristine-double',
+#     'm3-cnn-pristine-10-epoch',
+#     'm4-cnn-pristine-13-epochs',
+#     'm5-cnn-pristine-16-epochs',
+#     'm6-cnn-pristine-20-epochs',
+#     'm7-cnn-pristine-23-epochs'], '../../figures/Fig3.png')
+
 ComponentVisualizer.merge_data_series([
-    'm1-cnn-pristine',
-    'm2-cnn-pristine-double',
-    'm3-cnn-pristine-10-epoch',
-    'm4-cnn-pristine-13-epochs',
-    'm5-cnn-pristine-16-epochs',
-    'm6-cnn-pristine-20-epochs',
-    'm7-cnn-pristine-23-epochs'], '../../figures/Fig3.png')
+    'm-14-cnn-diffraction-10-conv3',
+    'm-17-cnn-diffraction-10-conv3-adam-clip'], '../../figures/Fig-DiffractionFail70.png')
