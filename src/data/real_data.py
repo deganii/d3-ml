@@ -42,23 +42,37 @@ def makeGrayscale():
         #img.save(dest_path, gray)
         scipy.misc.imsave(dest_path, img)
 
+def loadData():
+    image_size = 200*200
+
+    data = np.zeros([len(files),image_size], dtype='float32',)
+    labels = np.zeros([len(files), 6], dtype='float32',)
+    count = 0
+    for image_path in files:
+        image = misc.imread(image_path).reshape(image_size)
+        seq_num, label = (int(d) for d in os.path.splitext(ntpath.basename(image_path))[0].split('-'))
+        #np.copyto(data[seq_num*image_size, (seq_num+1)*image_size], image)
+        data[seq_num, :] = image
+        # one-hot encoding
+        labels[seq_num, :] = np.zeros(6, dtype='float32')
+        labels[seq_num, label] = 1.0
+    return (data, labels)
 
 
 def makeSmall():
-    output_folder = '../../data/ds5-real-data/squaremask-augmented'
+    output_folder = '../../data/ds5-real-data/squaremask-augmented-200'
     data_folder = '../../data/ds5-real-data/squaremask/'
-
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    for file in glob.glob(data_folder + '*.*'):
-        img = Image.open(file)
+    for file in glob.glob(data_folder + "*.*" ):
+        img = Image.open(file).convert('L')
         trans = [0,200,300, 400,500,600,700,800,965]
         rot = [0, 90, 270, 180]
         for i in trans:
             for j in trans:
                 for ang in rot:
-                    temp = img.crop([i, j, 400 + i, 400 + j])
+                    temp = img.crop([i, j, 200 + i, 200 + j])
                     temp = temp.rotate(ang, resample=Image.BICUBIC )
 
                     dest_name, dest_ext = os.path.splitext(ntpath.basename(file))
