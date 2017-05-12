@@ -55,7 +55,7 @@ class ComponentVisualizer(object):
 
 
     @classmethod
-    def saveTiledImages(cls, files, destination, n_columns=5, cropx=0, cropy = 0):
+    def saveTiledImages(cls, files, destination, n_columns=4, cropx=0, cropy = 0):
         if isinstance(files[0],str):
             files = [Image.open(f) for f in files]
 
@@ -80,10 +80,10 @@ class ComponentVisualizer(object):
 
     @classmethod
     def saveTiledUnet(cls, n_columns=4, cropx=0, cropy = 0):
-        files = glob.glob('../../figures/predictions/*.*')
+        files = glob.glob('../../figures/diffracted-predictions/*.*')
 
         files = [Image.open(f).crop((320,0,320+160,160)) for f in files]
-        cls.saveTiledImages(files, '../../figures/unet-tiled.png', n_columns=n_columns)
+        cls.saveTiledImages(files, '../../figures/unet-tiled-diffraction.png', n_columns=n_columns)
 
 
 

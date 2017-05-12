@@ -36,5 +36,5 @@ if not os.path.exists(model_folder):
 generator = EnsembleDataProvider()
 net = unet.Unet(channels=generator.channels, n_class=generator.n_class, layers=3, features_root=16)
 trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
-path = trainer.train(generator, model_folder + "unet_trained", training_iters=20, epochs=10, display_step=2, restore=False)
+path = trainer.train(generator, model_folder + "unet_trained", training_iters=20, epochs=50, display_step=2, restore=False)
 
