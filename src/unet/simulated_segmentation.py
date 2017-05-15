@@ -7,7 +7,10 @@ import os
 import glob
 import scipy.misc
 import ntpath
-data_folder = '../../data/ds4-ensemble-diffraction/'
+
+#data_folder = '../../data/ds4-ensemble-diffraction/'
+data_folder = '../../data/ds3-ensemble-square/'
+
 train_npz = np.load(data_folder + 'training.npz')
 train_data, train_labels = train_npz['data'], train_npz['labels']
 
@@ -29,7 +32,7 @@ class EnsembleDataProvider(BaseDataProvider):
         self.idx = self.idx + 1
         return data, label
 
-model_folder = '../../models/m-27-unet-simulated-200/'
+model_folder = '../../models/m-28-unet-simulated-200/'
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
 

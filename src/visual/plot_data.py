@@ -43,6 +43,10 @@ class ComponentVisualizer(object):
         fig.canvas.draw()
         plt.show()
 
+
+
+
+
 # ComponentVisualizer.merge_data_series([
 #     'm1-cnn-pristine',
 #     'm2-cnn-pristine-double',
