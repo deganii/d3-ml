@@ -25,7 +25,8 @@ class UpsampleLayer2D(Layer):
     # output_shape = 2*1568/L x2 * 1365/L x 16
     def call(self, x):
         output_shape = self.compute_output_shape(self.input_shape)
-        upsampled = np.array(shape = output_shape)
+        upsampled = np.zeros(output_shape)
+
         # 1 to 64
         for z in range(input_shape[3]):
             for j in range(input_shape[2]):
@@ -82,29 +83,26 @@ def residualBlockChain(input_layer):
         r0 = residualBlock(r0)
     return r0
 
-r0  = residualBlockChain(c0)
-r2  = residualBlockChain(c2)
-r4  = residualBlockChain(c4)
-r8  = residualBlockChain(c8)
+r0 = residualBlockChain(c0)
+r2 = residualBlockChain(c2)
+r4 = residualBlockChain(c4)
+r8 = residualBlockChain(c8)
 
 u0 = r0
 
 def upsampleBlock(input_layer):
     conv1 = Conv2D(64, (3, 3), activation='relu')(input_layer)
     # uconv1 = UpSampling2D(size=(2, 2))(conv1)
-    return WeirdUpsampleLayer2D(conv1)
-
+    return UpsampleLayer2D(conv1)
 
 def upsampleChain(input_layer, num):
     if num == 0:
         return input_layer
     return upsampleChain(upsampleBlock(input_layer), num-1)
 
-
-u2 = upsampleChain(r2,1)
-u4 = upsampleChain(r4,2)
-u8 = upsampleChain(r8,3)
-
+u2 = upsampleChain(r2, 1)
+u4 = upsampleChain(r4, 2)
+u8 = upsampleChain(r8, 3)
 
 p0 = Conv2D(16, (3, 3), activation='relu')(u0)
 p2 = Conv2D(16, (3, 3), activation='relu')(u2)
@@ -123,6 +121,8 @@ model = Model(input_shape, out)
 model.compile(loss=keras.losses.mean_squared_error,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
+
+
 
 model.fit(x_train, y_train,
           batch_size=batch_size,

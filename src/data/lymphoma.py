@@ -13,9 +13,9 @@ import h5py
 
 class LymphomaGenerator(object):
     @classmethod
-    def generateImage(cls, output_folder= '../../data/ds7-lymphoma/'):
+    def generateImage(cls, set_name, output_folder='../../data/ds7-lymphoma/training'):
         # open lymphoma image
-        sample_data = h5py.File('C:/dev/courses/6.874/Final-Project/src/images/Daudi_PS_NAV_Postwash_image1.mat', 'r')
+        sample_data = h5py.File('../images/Daudi_PS_NAV_Postwash_image1.mat', 'r')
         # load a sample image
         subNormAmp = sample_data['subNormAmp']
         reconImage = sample_data['ReconImage']
@@ -26,14 +26,14 @@ class LymphomaGenerator(object):
 
         subNormAmpNp = np.transpose(np.asarray(subNormAmp))
         viewHologram = Image.fromarray(np.uint8(255.0 *  subNormAmpNp / np.max(subNormAmpNp)))
-        scipy.misc.imsave('./test_viewhologram.png', viewHologram)
+        #scipy.misc.imsave('./test_viewhologram.png', viewHologram)
 
         # convert from matlab tuples to a proper np array
         recon = np.asarray([[[num for num in row] for row in rows] for rows in reconImage])
-        reconReal =  np.transpose(recon[:,:,0])
-        reconImag =  np.transpose(recon[:, :, 1])
+        reconReal = np.transpose(recon[:, :, 0])
+        reconImag = np.transpose(recon[:, :, 1])
 
-        viewReconReal =reconReal + np.abs(np.min(reconReal))
+        viewReconReal = reconReal + np.abs(np.min(reconReal))
         viewReconImag = reconImag + np.abs(np.min(reconImag))
 
         viewReconReal = Image.fromarray(np.uint8(255.0 * (viewReconReal) / np.max(viewReconReal)))
@@ -44,11 +44,24 @@ class LymphomaGenerator(object):
 
         # tile the image
         stride = 25
-        tile = [200,200]
+        tile = [200, 200]
         seq = 0
-        for rot in range(0,360,90):
-            for i in range(0, M, stride):
-                for j in range(0, N, stride):
+
+        last_M = int(M - (M % stride) - tile[0])
+        last_N = int(N - (N % stride) - tile[1])
+
+        M_count = int(np.floor((M-tile[0])/stride))
+        N_count = int(np.floor((N-tile[1])/stride))
+
+        data = np.zeros((4 * M_count * N_count, tile[0] * tile[1]))
+        labels = np.zeros((4 * M_count * N_count, 2, tile[0] * tile[1]))
+
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+        for rot in range(0, 360, 90):
+            for i in range(0, last_M, stride):
+                for j in range(0, last_N, stride):
                     holoTile = viewHologram.crop([i, j, tile[0] + i, tile[1] + j])
                     realTile = viewReconReal.crop([i, j, tile[0] + i, tile[1] + j])
                     imageTile = viewReconImag.crop([i, j, tile[0] + i, tile[1] + j])
@@ -67,10 +80,18 @@ class LymphomaGenerator(object):
                     scipy.misc.imsave(os.path.join(output_folder, realDestFilename), realTile)
                     scipy.misc.imsave(os.path.join(output_folder, imagDestFilename), imageTile)
 
-
+                    # append the raw data to the
+                    data[seq, :] = subNormAmp[i:tile[0]+i, j:tile[1]+j].reshape(tile[0] * tile[1])
+                    labels[seq, 0, :] = reconReal[i:tile[0] + i, j:tile[1] + j].reshape(tile[0] * tile[1])
+                    labels[seq, 1, :] = reconImag[i:tile[0] + i, j:tile[1] + j].reshape(tile[0] * tile[1])
                     seq = seq + 1
 
-        #np.savez(os.path.join(dir, npzName + '.npz'), data=data, labels=source_labels)
+
+        dir_name = os.path.dirname(output_folder)
 
 
-LymphomaGenerator.generateImage()
+
+        np.savez(os.path.join(dir_name, set_name + '.npz'), data=data, labels=labels)
+
+
+LymphomaGenerator.generateImage('training')
