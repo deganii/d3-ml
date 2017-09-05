@@ -12,6 +12,22 @@ import glob
 import h5py
 
 class LymphomaGenerator(object):
+
+    @classmethod
+    def partitionTrainingAndTestSet(cls):
+        data_folder = '../../data/ds7-lymphoma/'
+        data_npz = np.load(data_folder + 'all.npz')
+
+        all_data, all_labels = data_npz['data'], data_npz['labels']
+        indices = np.random.permutation(all_data.shape[0])
+
+        test_count = int(np.floor(all_data.shape[0] * 0.2))
+        test_idx, training_idx = indices[:test_count], indices[test_count:]
+        training_data, test_data = all_data[training_idx, :], all_data[test_idx, :]
+        training_labels, test_labels = all_labels[training_idx, :, :], all_labels[test_idx, :, :]
+        np.savez(os.path.join(data_folder, 'training.npz'), data=training_data, labels=training_labels)
+        np.savez(os.path.join(data_folder, 'test.npz'), data=test_data, labels=test_labels)
+
     @classmethod
     def generateImage(cls, set_name, output_folder='../../data/ds7-lymphoma/training'):
         # open lymphoma image
@@ -19,39 +35,46 @@ class LymphomaGenerator(object):
         # load a sample image
         subNormAmp = sample_data['subNormAmp']
         reconImage = sample_data['ReconImage']
-        M = subNormAmp.shape[0]
-        N = subNormAmp.shape[1]
+
         #reshaped = [[reconImage[m, n] for m in range(reconImage.shape[0])] for n in range(reconImage.shape[1])]
         # convert to numpy array
 
-        subNormAmpNp = np.transpose(np.asarray(subNormAmp))
-        viewHologram = Image.fromarray(np.uint8(255.0 *  subNormAmpNp / np.max(subNormAmpNp)))
+        subNormAmp = np.asarray(subNormAmp)
+        viewHologram = Image.fromarray(np.transpose(np.uint8(255.0 * subNormAmp / np.max(subNormAmp))))
+
+
+
+
         #scipy.misc.imsave('./test_viewhologram.png', viewHologram)
 
         # convert from matlab tuples to a proper np array
         recon = np.asarray([[[num for num in row] for row in rows] for rows in reconImage])
-        reconReal = np.transpose(recon[:, :, 0])
-        reconImag = np.transpose(recon[:, :, 1])
+        reconReal = recon[:, :, 0]
+        reconImag = recon[:, :, 1]
 
         viewReconReal = reconReal + np.abs(np.min(reconReal))
         viewReconImag = reconImag + np.abs(np.min(reconImag))
 
-        viewReconReal = Image.fromarray(np.uint8(255.0 * (viewReconReal) / np.max(viewReconReal)))
-        viewReconImag = Image.fromarray(np.uint8(255.0 * (viewReconImag) / np.max(viewReconImag)))
+        viewReconReal = Image.fromarray(np.transpose(np.uint8(255.0 * (viewReconReal) / np.max(viewReconReal))))
+        viewReconImag = Image.fromarray(np.transpose(np.uint8(255.0 * (viewReconImag) / np.max(viewReconImag))))
 
         #scipy.misc.imsave('./test_viewreconReal.png', viewReconReal)
         #scipy.misc.imsave('./test_viewreconImag.png', viewReconImag)
 
+
+        M = subNormAmp.shape[0]
+        N = subNormAmp.shape[1]
+
         # tile the image
-        stride = 25
+        stride = 100
         tile = [200, 200]
         seq = 0
 
-        last_M = int(M - (M % stride) - tile[0])
-        last_N = int(N - (N % stride) - tile[1])
+        last_M = int(M - (M % stride) - tile[0]) + 1
+        last_N = int(N - (N % stride) - tile[1]) + 1
 
-        M_count = int(np.floor((M-tile[0])/stride))
-        N_count = int(np.floor((N-tile[1])/stride))
+        M_count = int(np.floor((M-tile[0])/stride)) + 1
+        N_count = int(np.floor((N-tile[1])/stride)) + 1
 
         data = np.zeros((4 * M_count * N_count, tile[0] * tile[1]))
         labels = np.zeros((4 * M_count * N_count, 2, tile[0] * tile[1]))
@@ -60,17 +83,17 @@ class LymphomaGenerator(object):
             os.makedirs(output_folder)
 
         for rot in range(0, 360, 90):
-            for i in range(0, last_M, stride):
-                for j in range(0, last_N, stride):
-                    holoTile = viewHologram.crop([i, j, tile[0] + i, tile[1] + j])
-                    realTile = viewReconReal.crop([i, j, tile[0] + i, tile[1] + j])
-                    imageTile = viewReconImag.crop([i, j, tile[0] + i, tile[1] + j])
+            for m in range(0, last_M, stride):
+                for n in range(0, last_N, stride):
+                    holoTile = viewHologram.crop([m, n, tile[0] + m, tile[1] + n])
+                    realTile = viewReconReal.crop([m, n, tile[0] + m, tile[1] + n])
+                    imageTile = viewReconImag.crop([m, n, tile[0] + m, tile[1] + n])
 
                     holoTile = holoTile.rotate(rot, resample=Image.BICUBIC)
                     realTile = realTile.rotate(rot, resample=Image.BICUBIC)
                     imageTile = imageTile.rotate(rot, resample=Image.BICUBIC)
 
-                    transformation = "_tx_{0}_ty_{1}_rot_{2}".format(i, j, rot)
+                    transformation = "_tm_{0}_tn_{1}_rot_{2}".format(m, n, rot)
 
                     holoDestFilename = '{0:05}-H-{1}.png'.format(seq,transformation)
                     realDestFilename = '{0:05}-R-{1}.png'.format(seq,transformation)
@@ -81,9 +104,10 @@ class LymphomaGenerator(object):
                     scipy.misc.imsave(os.path.join(output_folder, imagDestFilename), imageTile)
 
                     # append the raw data to the
-                    data[seq, :] = subNormAmp[i:tile[0]+i, j:tile[1]+j].reshape(tile[0] * tile[1])
-                    labels[seq, 0, :] = reconReal[i:tile[0] + i, j:tile[1] + j].reshape(tile[0] * tile[1])
-                    labels[seq, 1, :] = reconImag[i:tile[0] + i, j:tile[1] + j].reshape(tile[0] * tile[1])
+                    data[seq, :] = np.rot90(subNormAmp[m:tile[0]+m, n:tile[1]+n], int(rot / 90)).reshape(tile[0] * tile[1])
+                    labels[seq, 0, :] = np.rot90(reconReal[m:tile[0] + m, n:tile[1] + n], int(rot / 90)).reshape(tile[0] * tile[1])
+                    labels[seq, 1, :] = np.rot90(reconImag[m:tile[0] + m, n:tile[1] + n], int(rot / 90)).reshape(tile[0] * tile[1])
+
                     seq = seq + 1
 
 
@@ -94,4 +118,7 @@ class LymphomaGenerator(object):
         np.savez(os.path.join(dir_name, set_name + '.npz'), data=data, labels=labels)
 
 
-LymphomaGenerator.generateImage('training')
+
+
+#LymphomaGenerator.generateImage('all')
+LymphomaGenerator.partitionTrainingAndTestSet()

@@ -44,20 +44,24 @@ class UpsampleLayer2D(Layer):
     def compute_output_shape(self, input_shape):
         return (input_shape[0] * 2, input_shape[1] * 2, input_shape[3] / 4)
 
+#
+# sample_data = h5py.File('C:/dev/courses/6.874/Final-Project/src/images/Daudi_PS_NAV_Postwash_image1.mat', 'r')
+# # load a sample image
+# subNormAmp = sample_data['subNormAmp']
+# reconImage = sample_data['ReconImage']
+# M = subNormAmp.shape[0]
+# N = subNormAmp.shape[1]
+#reshaped = [[reconImage[m,n] for m in range(reconImage.shape[0])] for n in range(reconImage.shape[1])]
 
-sample_data = h5py.File('C:/dev/courses/6.874/Final-Project/src/images/Daudi_PS_NAV_Postwash_image1.mat', 'r')
-# load a sample image
-subNormAmp = sample_data['subNormAmp']
-reconImage = sample_data['ReconImage']
-M = subNormAmp.shape[0]
-N = subNormAmp.shape[1]
+# load npz
+
+data_folder = '../../data/ds7-lymphoma/'
+train_npz = np.load(data_folder + 'training.npz')
+train_data, train_labels = train_npz['data'], train_npz['labels']
+
+random.choice(mylist,3)
 
 
-
-
-
-
-reshaped = [[reconImage[m,n] for m in range(reconImage.shape[0])] for n in range(reconImage.shape[1])]
 
 input_shape = Input(shape=(M, N, 1))
 #output_shape = Output(shape=(M, N, 2))
@@ -122,6 +126,7 @@ model.compile(loss=keras.losses.mean_squared_error,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
 
+# load data
 
 
 model.fit(x_train, y_train,
