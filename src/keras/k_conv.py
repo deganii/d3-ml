@@ -29,12 +29,16 @@ class UpsampleLayer2D(Layer):
         x = np.stack([[[11, 12], [13, 14]], [[21, 22], [23, 24]],
                       [[31, 32], [33, 34]], [[41, 42], [43, 44]]])
         # stack the first part:
-        x_s1 = K.stack(x[0:2], -1)
+        x_s1 = np.stack(x[0:2], -1)
+        x_s1 = np.reshape(x_s1, [2,4])
         # stack the second part:
-        x_s2 = K.stack(x[2:4], -1)
-        # combine each together
+        x_s2 = np.stack(x[2:4], -1)
+        x_s2 = np.reshape(x_s2, [2,4])
 
-        x_recomb =
+        # combine each together
+        x_conc = np.concatenate((x_s1, x_s2), 1)
+        x_final = np.reshape(x_conc, [4,4])
+
 
 
 
