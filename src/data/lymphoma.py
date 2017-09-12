@@ -42,9 +42,6 @@ class LymphomaGenerator(object):
         subNormAmp = np.asarray(subNormAmp)
         viewHologram = Image.fromarray(np.transpose(np.uint8(255.0 * subNormAmp / np.max(subNormAmp))))
 
-
-
-
         #scipy.misc.imsave('./test_viewhologram.png', viewHologram)
 
         # convert from matlab tuples to a proper np array
@@ -70,11 +67,11 @@ class LymphomaGenerator(object):
         tile = [200, 200]
         seq = 0
 
-        last_M = int(M - (M % stride) - tile[0]) + 1
-        last_N = int(N - (N % stride) - tile[1]) + 1
+        last_M = int(M - (M % stride))
+        last_N = int(N - (N % stride))
 
-        M_count = int(np.floor((M-tile[0])/stride)) + 1
-        N_count = int(np.floor((N-tile[1])/stride)) + 1
+        M_count = int(np.floor(M/stride))
+        N_count = int(np.floor(N/stride))
 
         data = np.zeros((4 * M_count * N_count, tile[0] * tile[1]))
         labels = np.zeros((4 * M_count * N_count, 2, tile[0] * tile[1]))
@@ -85,15 +82,25 @@ class LymphomaGenerator(object):
         for rot in range(0, 360, 90):
             for m in range(0, last_M, stride):
                 for n in range(0, last_N, stride):
-                    holoTile = viewHologram.crop([m, n, tile[0] + m, tile[1] + n])
-                    realTile = viewReconReal.crop([m, n, tile[0] + m, tile[1] + n])
-                    imageTile = viewReconImag.crop([m, n, tile[0] + m, tile[1] + n])
+
+                    st_m, end_m, st_n, end_n = m, tile[0] + m,  n, tile[1] + n
+
+                    if end_m >= M:
+                        st_m, end_m = M - 1 - tile[0], M - 1
+                    if end_n >= N:
+                        st_n, end_n = N - 1 - tile[1], N - 1
+
+                    crop_mn = [st_m, st_n, end_m, end_n]
+
+                    holoTile = viewHologram.crop(crop_mn)
+                    realTile = viewReconReal.crop(crop_mn)
+                    imageTile = viewReconImag.crop(crop_mn)
 
                     holoTile = holoTile.rotate(rot, resample=Image.BICUBIC)
                     realTile = realTile.rotate(rot, resample=Image.BICUBIC)
                     imageTile = imageTile.rotate(rot, resample=Image.BICUBIC)
 
-                    transformation = "_tm_{0}_tn_{1}_rot_{2}".format(m, n, rot)
+                    transformation = "tm_{0}_tn_{1}_rot_{2}".format(st_m, st_n, rot)
 
                     holoDestFilename = '{0:05}-H-{1}.png'.format(seq,transformation)
                     realDestFilename = '{0:05}-R-{1}.png'.format(seq,transformation)
@@ -104,9 +111,9 @@ class LymphomaGenerator(object):
                     scipy.misc.imsave(os.path.join(output_folder, imagDestFilename), imageTile)
 
                     # append the raw data to the
-                    data[seq, :] = np.rot90(subNormAmp[m:tile[0]+m, n:tile[1]+n], int(rot / 90)).reshape(tile[0] * tile[1])
-                    labels[seq, 0, :] = np.rot90(reconReal[m:tile[0] + m, n:tile[1] + n], int(rot / 90)).reshape(tile[0] * tile[1])
-                    labels[seq, 1, :] = np.rot90(reconImag[m:tile[0] + m, n:tile[1] + n], int(rot / 90)).reshape(tile[0] * tile[1])
+                    data[seq, :] = np.rot90(subNormAmp[st_m:end_m, st_n:end_n], int(rot / 90)).reshape(tile[0] * tile[1])
+                    labels[seq, 0, :] = np.rot90(reconReal[st_m:end_m, st_n:end_n], int(rot / 90)).reshape(tile[0] * tile[1])
+                    labels[seq, 1, :] = np.rot90(reconImag[st_m:end_m, st_n:end_n], int(rot / 90)).reshape(tile[0] * tile[1])
 
                     seq = seq + 1
 

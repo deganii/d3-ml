@@ -97,16 +97,16 @@ class ComponentVisualizer(object):
 # ComponentVisualizer.saveTiledImages(dfiles, '../../figures/fig2-diff4.png',  numcols=ncols, cropx=-0, cropy=-0)
 
 
-
-
-output = '../../figures/predictions/'
-
-for im in glob.glob('../../figures/predictions/*.jpg'):
-    img = Image.open(im)
-    img = img.convert("L")
-    for j in range(4):
-        mask = img.crop([320, j*160, 480, (j+1)*160])
-        basename = os.path.splitext(ntpath.basename(im))[0]
-        mask.save(output + 'learned/{0}_{1:02}.jpg'.format(basename,j))
-        gnd_truth = img.crop([160, j * 160, 320, (j + 1) * 160])
-        gnd_truth.save(output + 'truth/{0}_{1:02}.jpg'.format(basename,j))
+#
+#
+# output = '../../figures/predictions/'
+#
+# for im in glob.glob('../../figures/predictions/*.jpg'):
+#     img = Image.open(im)
+#     img = img.convert("L")
+#     for j in range(4):
+#         mask = img.crop([320, j*160, 480, (j+1)*160])
+#         basename = os.path.splitext(ntpath.basename(im))[0]
+#         mask.save(output + 'learned/{0}_{1:02}.jpg'.format(basename,j))
+#         gnd_truth = img.crop([160, j * 160, 320, (j + 1) * 160])
+#         gnd_truth.save(output + 'truth/{0}_{1:02}.jpg'.format(basename,j))

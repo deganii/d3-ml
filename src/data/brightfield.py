@@ -33,7 +33,7 @@ class BrightfieldGenerator(object):
         bounds = [12 + tx - sx, 12+ty - sy, 27+tx+sx, 27+ty+sy]
         BrightfieldGenerator.draw_ellipse(image, bounds, width=2, outline='white')
 
-        if mask:
+        if draw_mask:
             BrightfieldGenerator.draw_ellipse(mask, bounds, width=2, outline='white')
             mask_draw.ellipse(bounds, fill='white', outline=None)
 
@@ -72,7 +72,7 @@ class BrightfieldGenerator(object):
             bead_bound = [bead_xabs - bead_radius, bead_yabs - bead_radius, bead_xabs + bead_radius, bead_yabs + bead_radius]
             BrightfieldGenerator.draw_ellipse(image, bead_bound, width=2, outline='white')
 
-            if mask:
+            if draw_mask:
                 BrightfieldGenerator.draw_ellipse(mask, bead_bound, width=2, outline='white')
                 mask_draw.ellipse(bead_bound, fill='white', outline=None)
 
@@ -84,7 +84,7 @@ class BrightfieldGenerator(object):
 
         global_rotate = random.randint(0,180)
         image = image.rotate(global_rotate, resample=Image.BILINEAR)
-        if mask:
+        if draw_mask:
             mask = mask.rotate(global_rotate, resample=Image.BILINEAR)
         #image = image.resize((40,40), resample=Image.LANCZOS)
         # image = image.transform(
@@ -102,10 +102,10 @@ class BrightfieldGenerator(object):
             if not os.path.exists(destination):
                 os.makedirs(destination)
             image.save(os.path.join(destination, '{0:05}-{1}.png'.format(seq, num_beads )))
-            if mask:
+            if draw_mask:
                 image.save(os.path.join(destination, '{0:05}-{1}-M.png'.format(seq, num_beads)))
 
-        if mask:
+        if draw_mask:
             return image, num_beads, mask
         return image, num_beads
 
@@ -173,10 +173,10 @@ def generatePristineBatch(destination, num_images = 10000):
     for i in range(num_images):
         BrightfieldGenerator.generateImage(destination, i)
         if i % 1000 == 0:
-            print("Generating {0}/{1}  -  (2)%".format(i, num_images), 100.*i / num_images)
+            print("Generating {0}/{1}  -  (2:.2f)%".format(i, num_images), 100.*i / num_images)
 
-#generatePristineBatch("../../data/ds1-pristine/training", 60000)
+#generatePristineBatch("../../data/ds1-pristine/test", 10000)
 #d, l = BrightfieldGenerator.loadData("../../data/ds1-pristine/*.png")
 
 #BrightfieldGenerator.makenpz("../../data/ds1-pristine/training/*.png", 'training')
-#BrightfieldGenerator.makenpz("../../data/ds1-pristine/test/*.png", 'test')
+BrightfieldGenerator.makenpz("../../data/ds1-pristine/training/*.png", 'training')
